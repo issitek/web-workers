@@ -62,13 +62,13 @@
     function calcularPrimos() {
       document.getElementById("resultado").innerHTML += `<p>Calculando primos...</p>`;
       // Este límite es suficientemente grande para tardar varios segundos
-      worker.postMessage({ task: "primes", value: 130000 });
+      worker.postMessage({ task: "primes", value: 11130000 });
     }
 
     function sumarRaices() {
       document.getElementById("resultado").innerHTML += `<p>Calculando suma de raíces...</p>`;
       // También un límite alto que tarda varios segundos
-      worker.postMessage({ task: "roots", value: 10000000 });
+      worker.postMessage({ task: "roots", value: 1110000000 });
     }
   </script>
 </body>
