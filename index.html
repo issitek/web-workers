@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Worker con Blob</title>
+  <title>Web Worker con Blob - Cálculos Pesados</title>
 </head>
 <body>
-  <h2>Ejemplo con Web Worker usando Blob</h2>
-  <button onclick="calcular()">Calcular Primos hasta 100,000</button>
+  <h2>Ejemplo de Web Worker con dos funciones pesadas</h2>
+  <button onclick="calcularPrimos()">Calcular Primos (tarda ~5s)</button>
+  <button onclick="sumarRaices()">Sumar Raíces (tarda ~5s)</button>
   <div id="resultado"></div>
 
   <script>
+    // Código del worker como string
     const workerCode = `
       function isPrime(n) {
         if (n <= 1) return false;
@@ -26,25 +28,47 @@
         return primes.length;
       }
 
+      function sumSquareRoots(limit) {
+        let sum = 0;
+        for (let i = 1; i <= limit; i++) {
+          sum += Math.sqrt(i);
+        }
+        return sum;
+      }
+
       onmessage = function(e) {
-        const limit = e.data;
-        const result = calculatePrimes(limit);
-        postMessage(result);
+        const { task, value } = e.data;
+        let result;
+
+        if (task === "primes") {
+          result = calculatePrimes(value);
+          postMessage({ task, result });
+        } else if (task === "roots") {
+          result = sumSquareRoots(value);
+          postMessage({ task, result: result.toFixed(2) });
+        }
       };
     `;
 
-    // Creamos un Blob con el código del worker
+    // Crear el Blob y el Worker
     const blob = new Blob([workerCode], { type: "application/javascript" });
-
-    // Creamos el worker desde el Blob
     const worker = new Worker(URL.createObjectURL(blob));
 
     worker.onmessage = function (e) {
-      document.getElementById("resultado").innerText = "Total de primos: " + e.data;
+      const { task, result } = e.data;
+      document.getElementById("resultado").innerHTML += `<p><strong>${task}</strong>: ${result}</p>`;
     };
 
-    function calcular() {
-      worker.postMessage(100000); // Inicia la tarea
+    function calcularPrimos() {
+      document.getElementById("resultado").innerHTML += `<p>Calculando primos...</p>`;
+      // Este límite es suficientemente grande para tardar varios segundos
+      worker.postMessage({ task: "primes", value: 130000 });
+    }
+
+    function sumarRaices() {
+      document.getElementById("resultado").innerHTML += `<p>Calculando suma de raíces...</p>`;
+      // También un límite alto que tarda varios segundos
+      worker.postMessage({ task: "roots", value: 10000000 });
     }
   </script>
 </body>
