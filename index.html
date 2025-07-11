@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Worker con Blob</title>
+</head>
+<body>
+  <h2>Ejemplo con Web Worker usando Blob</h2>
+  <button onclick="calcular()">Calcular Primos hasta 100,000</button>
+  <div id="resultado"></div>
+
+  <script>
+    const workerCode = `
+      function isPrime(n) {
+        if (n <= 1) return false;
+        for (let i = 2; i * i <= n; i++) {
+          if (n % i === 0) return false;
+        }
+        return true;
+      }
+
+      function calculatePrimes(limit) {
+        const primes = [];
+        for (let i = 2; i <= limit; i++) {
+          if (isPrime(i)) primes.push(i);
+        }
+        return primes.length;
+      }
+
+      onmessage = function(e) {
+        const limit = e.data;
+        const result = calculatePrimes(limit);
+        postMessage(result);
+      };
+    `;
+
+    // Creamos un Blob con el código del worker
+    const blob = new Blob([workerCode], { type: "application/javascript" });
+
+    // Creamos el worker desde el Blob
+    const worker = new Worker(URL.createObjectURL(blob));
+
+    worker.onmessage = function (e) {
+      document.getElementById("resultado").innerText = "Total de primos: " + e.data;
+    };
+
+    function calcular() {
+      worker.postMessage(100000); // Inicia la tarea
+    }
+  </script>
+</body>
+</html>
